@@ -1,0 +1,7 @@
+[package]
+name = "sendsecure-rs"
+version = "0.1.0"
+authors = ["Allan Seymour <banks.the.megalithic.stone@gmail.com>"]
+
+[dependencies]
+hyper = "0.9.14"
