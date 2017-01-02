@@ -2,7 +2,8 @@ pub mod SendSecure {
 
     use std::cmp::Ordering;
     use rustc_serialize::json::Json;
-    use hyper::{client, error, status};
+    // use hyper::{client, error, status};
+    use reqwest;
     use std::io::Read;
     use std::result::Result;
     use error::SendSecure;
@@ -11,10 +12,10 @@ pub mod SendSecure {
 
     impl Client {
         fn make_request(url: &str) -> SendSecure::SendSecureResult<String> {
-            let client = client::Client::new();
+            let client = reqwest::Client::new().unwrap();
             let mut res = try!(client.get(url).send());
-            let status_code = res.status.class().default_code();
-            res = try!(match status_code.cmp(&status::StatusCode::BadRequest) {
+            let status_code = res.status().class().default_code();
+            res = try!(match status_code.cmp(&reqwest::StatusCode::BadRequest) {
                 Ordering::Less => Ok(res),
                 Ordering::Greater | Ordering::Equal => {
                     Err(SendSecure::SendSecureError::ResponseError(status_code))
@@ -42,9 +43,6 @@ pub mod SendSecure {
                               endpoint: &str,
                               one_time_password: bool)
                               -> SendSecure::SendSecureResult<String> {
-            println!("portal: {}",
-                     Client::get_portal_url_for_permalink("https://portal.xmedius.com", "xmdev")
-                         .unwrap());
             let url: &str = "https://httpbin.org/get";//"https://secure.bixi.com/data/stations.json";
             let body = try!(Client::make_request(url));
             let json_body = try!(Json::from_str(body.as_str()));
@@ -54,7 +52,6 @@ pub mod SendSecure {
                 }
             }
             Err(SendSecure::SendSecureError::UnexpectedResponseError(body))
-
         }
     }
 }

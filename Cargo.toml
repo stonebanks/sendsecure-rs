@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Allan Seymour <banks.the.megalithic.stone@gmail.com>"]
 
 [dependencies]
-hyper = "0.9.14"
 rustc-serialize = "0.3.22"
+reqwest = "0.2.0"

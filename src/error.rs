@@ -1,13 +1,14 @@
 pub mod SendSecure {
     use std::io;
-    use hyper::{client,error,status};
+    use reqwest;
+    // use hyper::{client, error, status};
     use rustc_serialize::json;
     // We derive `Debug` because all types should probably derive `Debug`.
     // This gives us a reasonable human readable description of `SendSecureError` value
     #[derive(Debug)]
     pub enum SendSecureError {
-        UnexpectedServerError(error::Error),
-        ResponseError(status::StatusCode),
+        UnexpectedServerError(reqwest::Error),
+        ResponseError(reqwest::StatusCode),
         JSONSerializeError(json::BuilderError),
         UnexpectedResponseError(String),
         IoError(io::Error),
@@ -21,8 +22,8 @@ pub mod SendSecure {
         }
     }
 
-    impl From<error::Error> for SendSecureError {
-        fn from(err: error::Error) -> SendSecureError {
+    impl From<reqwest::Error> for SendSecureError {
+        fn from(err: reqwest::Error) -> SendSecureError {
             SendSecureError::UnexpectedServerError(err)
         }
     }
