@@ -7,7 +7,8 @@ pub mod SendSecure {
     // This gives us a reasonable human readable description of `SendSecureError` value
     #[derive(Debug)]
     pub enum SendSecureError {
-        UnexpectedServerError(reqwest::Error),
+        ClientInitializationError(reqwest::Error),
+        RequestBuilderError(reqwest::Error),
         ResponseError(reqwest::StatusCode),
         JSONSerializeError(json::BuilderError),
         UnexpectedResponseError(String),
@@ -24,7 +25,7 @@ pub mod SendSecure {
 
     impl From<reqwest::Error> for SendSecureError {
         fn from(err: reqwest::Error) -> SendSecureError {
-            SendSecureError::UnexpectedServerError(err)
+            SendSecureError::RequestBuilderError(err)
         }
     }
 

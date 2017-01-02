@@ -7,13 +7,13 @@ mod client;
 use client::SendSecure;
 
 fn main() {
-    match SendSecure::Client::get_user_token("acme",
+    match SendSecure::Client::get_user_token("xmdev",
                                              "username",
                                              "password",
                                              "device_id",
                                              "device_name",
                                              "application_type",
-                                             "endpoint",
+                                             "https://portal.xmedius.com",
                                              false) {
         Ok(res) => println!("{}", res),
         Err(e) => println!("{:?}", e),
