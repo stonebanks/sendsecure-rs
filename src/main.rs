@@ -1,8 +1,11 @@
 extern crate reqwest;
 extern crate rustc_serialize;
+use rustc_serialize::json;
+
 
 mod error;
 mod client;
+mod helpers;
 
 use client::SendSecure;
 
@@ -19,4 +22,9 @@ fn main() {
         Err(e) => println!("{:?}", e),
     };
 
+    let secu =
+        r#"{"id": "Person", "name": "Titi", "allow_sms": {"value": "tutu", "modifiable": true}}"#;
+    let toto: helpers::securityprofile::SecurityProfile = json::decode(secu).unwrap();
+
+    println!("{:?}", toto);
 }

@@ -11,6 +11,7 @@ pub mod SendSecure {
         RequestBuilderError(reqwest::Error),
         ResponseError(reqwest::StatusCode),
         JSONSerializeError(json::BuilderError),
+        JSONDecoderError(json::DecoderError),
         UnexpectedResponseError(String),
         IoError(io::Error),
     }
@@ -32,6 +33,12 @@ pub mod SendSecure {
     impl From<json::BuilderError> for SendSecureError {
         fn from(err: json::BuilderError) -> SendSecureError {
             SendSecureError::JSONSerializeError(err)
+        }
+    }
+
+    impl From<json::DecoderError> for SendSecureError {
+        fn from(err: json::DecoderError) -> SendSecureError {
+            SendSecureError::JSONDecoderError(err)
         }
     }
 }
