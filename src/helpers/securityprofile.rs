@@ -1,11 +1,6 @@
-use rustc_serialize::{json, Decodable, Decoder};
+use rustc_serialize::{Decodable, Decoder};
 use std::result::Result;
-
-#[derive(Debug)]
-pub struct Value {
-    pub value: Option<String>,
-    pub modifiable: Option<bool>,
-}
+use helpers::value::Value;
 
 #[derive(Debug)]
 pub struct SecurityProfile {
@@ -35,24 +30,9 @@ pub struct SecurityProfile {
     pub retention_period_unit: Option<Value>,
 }
 
-impl Decodable for Value {
-    fn decode<D: Decoder + 'static>(decoder: &mut D) -> Result<Value, D::Error> {
-        decoder.read_struct("root", 0, |decoder| {
-            Ok(Value {
-                value: decoder.read_struct_field("value", 0, |decoder| Decodable::decode(decoder))
-                    .unwrap_or(None),
-                modifiable:
-                    decoder.read_struct_field("modifiable", 0, |decoder| Decodable::decode(decoder))
-                    .unwrap_or(None),
-            })
-        })
-    }
-}
-
-
 impl Decodable for SecurityProfile {
     // 'static cf. http://stackoverflow.com/a/32644068
-    fn decode<D: Decoder + 'static>(decoder: &mut D) -> Result<SecurityProfile, D::Error> {
+    fn decode<D: Decoder>(decoder: &mut D) -> Result<SecurityProfile, D::Error> {
         decoder.read_struct("root", 0, |decoder| {
             Ok(SecurityProfile {
                 id: decoder.read_struct_field("id", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
@@ -64,24 +44,24 @@ impl Decodable for SecurityProfile {
                                        0,
                                        |decoder| Decodable::decode(decoder))
                     .unwrap_or(None),
-                allow_remember_me: decoder.read_struct_field("allow_remember_me", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                allow_remember_me: decoder.read_struct_field("allow_remember_me", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
                 allow_sms: decoder.read_struct_field("allow_sms", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                allow_voice: decoder.read_struct_field("allow_voice", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                allow_email: decoder.read_struct_field("allow_email", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                code_time_limit: decoder.read_struct_field("code_time_limit", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                code_length: decoder.read_struct_field("code_length", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                auto_extend_value: decoder.read_struct_field("auto_extend_value", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                auto_extend_unit: decoder.read_struct_field("auto_extend_unit", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                two_factor_required: decoder.read_struct_field("two_factor_required", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                encrypt_attachments: decoder.read_struct_field("encrypt_attachments", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                encrypt_message: decoder.read_struct_field("encrypt_message", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                expiration_value: decoder.read_struct_field("expiration_value", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                expiration_unit: decoder.read_struct_field("expiration_unit", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                reply_enabled: decoder.read_struct_field("reply_enabled", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                group_replies: decoder.read_struct_field("group_replies", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                double_encryption: decoder.read_struct_field("double_encryption", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                retention_period_value: decoder.read_struct_field("retention_period_value", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
-                retention_period_unit: decoder.read_struct_field("retention_period_unit", 2, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                allow_voice: decoder.read_struct_field("allow_voice", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                allow_email: decoder.read_struct_field("allow_email", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                code_time_limit: decoder.read_struct_field("code_time_limit", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                code_length: decoder.read_struct_field("code_length", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                auto_extend_value: decoder.read_struct_field("auto_extend_value", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                auto_extend_unit: decoder.read_struct_field("auto_extend_unit", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                two_factor_required: decoder.read_struct_field("two_factor_required", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                encrypt_attachments: decoder.read_struct_field("encrypt_attachments", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                encrypt_message: decoder.read_struct_field("encrypt_message", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                expiration_value: decoder.read_struct_field("expiration_value", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                expiration_unit: decoder.read_struct_field("expiration_unit", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                reply_enabled: decoder.read_struct_field("reply_enabled", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                group_replies: decoder.read_struct_field("group_replies", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                double_encryption: decoder.read_struct_field("double_encryption", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                retention_period_value: decoder.read_struct_field("retention_period_value", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
+                retention_period_unit: decoder.read_struct_field("retention_period_unit", 0, |decoder| Decodable::decode(decoder)).unwrap_or(None),
             })
         })
     }

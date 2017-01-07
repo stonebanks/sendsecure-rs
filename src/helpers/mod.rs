@@ -1,3 +1,7 @@
 pub mod securityprofile;
-
-pub struct helpers;
+pub mod enterprisesettings;
+pub mod contactmethod;
+pub mod attachment;
+pub mod recipient;
+pub mod safebox;
+pub mod value;
