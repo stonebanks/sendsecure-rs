@@ -1,19 +1,21 @@
 pub mod SendSecure {
     use std::io;
-    use reqwest;
-    // use hyper::{client, error, status};
+    use url::ParseError;
+    use hyper::{error, status};
     use rustc_serialize::json;
     // We derive `Debug` because all types should probably derive `Debug`.
     // This gives us a reasonable human readable description of `SendSecureError` value
     #[derive(Debug)]
     pub enum SendSecureError {
-        ClientInitializationError(reqwest::Error),
-        RequestBuilderError(reqwest::Error),
-        ResponseError(reqwest::StatusCode),
+        RequestBuilderError(error::Error),
+        ResponseError(status::StatusCode),
         JSONSerializeError(json::BuilderError),
         JSONDecoderError(json::DecoderError),
+        JSONEncoderError(json::EncoderError),
         UnexpectedResponseError(String),
         IoError(io::Error),
+        UrlError(ParseError),
+        UnexpectedError,
     }
     pub type SendSecureResult<T> = Result<T, SendSecureError>;
 
@@ -24,8 +26,8 @@ pub mod SendSecure {
         }
     }
 
-    impl From<reqwest::Error> for SendSecureError {
-        fn from(err: reqwest::Error) -> SendSecureError {
+    impl From<error::Error> for SendSecureError {
+        fn from(err: error::Error) -> SendSecureError {
             SendSecureError::RequestBuilderError(err)
         }
     }
@@ -39,6 +41,18 @@ pub mod SendSecure {
     impl From<json::DecoderError> for SendSecureError {
         fn from(err: json::DecoderError) -> SendSecureError {
             SendSecureError::JSONDecoderError(err)
+        }
+    }
+
+    impl From<json::EncoderError> for SendSecureError {
+        fn from(err: json::EncoderError) -> SendSecureError {
+            SendSecureError::JSONEncoderError(err)
+        }
+    }
+
+    impl From<ParseError> for SendSecureError {
+        fn from(err: ParseError) -> SendSecureError {
+            SendSecureError::UrlError(err)
         }
     }
 }
