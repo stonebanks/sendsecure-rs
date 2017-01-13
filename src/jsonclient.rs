@@ -121,6 +121,22 @@ impl JsonClient {
             Err(SendSecure::SendSecureError::UnexpectedError)
         }
     }
+
+    pub fn commit_safebox(&mut self, safebox_json: String) -> SendSecure::SendSecureResult<String> {
+        let suffix = format!("api/v2/safeboxes?locale={}", self.locale);
+        if let Some(sendsecure_endpoint) = self.get_sendsecure_endpoint()? {
+            let mut headers = header::Headers::new();
+            headers.set_raw("Authorization-Token",
+                            vec![self.api_token.clone().into_bytes()]);
+            let result = make_request(method::Method::Post,
+                                      sendsecure_endpoint.join(suffix.as_str())?.as_str(),
+                                      Some(safebox_json),
+                                      Some(headers))?;
+            Ok(result)
+        } else {
+            Err(SendSecure::SendSecureError::UnexpectedError)
+        }
+    }
 }
 
 impl UploadFileWithPath for JsonClient {
