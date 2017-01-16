@@ -12,6 +12,7 @@ mod error;
 mod client;
 mod helpers;
 mod jsonclient;
+mod response;
 
 use client::SendSecure;
 use url::Url;

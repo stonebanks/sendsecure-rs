@@ -9,7 +9,7 @@ pub struct Safebox<'a> {
     pub message: Option<String>,
     pub security_profile: Option<SecurityProfile>,
     pub upload_url: Option<String>,
-    user_email: String,
+    pub user_email: String,
     pub public_encryption_key: Option<String>,
     pub attachments: Vec<Attachment<'a>>,
     pub recipient: Vec<Recipient>,
