@@ -2,6 +2,10 @@ use helpers::securityprofile::SecurityProfile;
 use helpers::attachment::Attachment;
 use helpers::recipient::Recipient;
 
+struct CommitSafeboxRequest {
+    pub safebox: CommitSafebox,
+}
+
 #[derive(Debug)]
 pub struct Safebox<'a> {
     pub guid: Option<String>,
@@ -17,7 +21,7 @@ pub struct Safebox<'a> {
 
 
 impl<'a> Safebox<'a> {
-    fn new(user_email: String) -> Safebox<'a> {
+    pub fn new(user_email: String) -> Safebox<'a> {
         Safebox {
             user_email: user_email,
             guid: None,
@@ -30,4 +34,6 @@ impl<'a> Safebox<'a> {
             security_profile: None,
         }
     }
+
+    //pub fn to_json() -> String {}
 }

@@ -90,6 +90,10 @@ impl Client {
         Ok(safebox)
     }
 
+    // pub fn commit_safebox(&mut self, safebox: safebox::Safebox) {
+    //     let temp = self.jsonclient.commit_safebox(safebox_json)
+    // }
+
     pub fn security_profiles(&mut self,
                              user_email: &str)
                              -> SendSecureResult<Vec<securityprofile::SecurityProfile>> {
@@ -109,12 +113,16 @@ impl Client {
     pub fn default_security_profile
         (&mut self,
          user_email: &str)
-         -> SendSecureResult<Option<&securityprofile::SecurityProfile>> {
-        // let securityprofiles =
-        //     ;
-        let mut enterprisesettings = self.enterprise_settings()?;
-        Ok(self.security_profiles(user_email)?
-            .iter()
-            .find(|&&x| x.id == enterprisesettings.default_security_profile_id.unwrap()))
+         -> SendSecureResult<Option<securityprofile::SecurityProfile>> {
+        let securityprofiles = self.security_profiles(user_email)?;
+        let enterprisesettings = self.enterprise_settings()?;
+        let result = securityprofiles.iter()
+            .find(|ref securityprofile| if let Some(x) =
+                enterprisesettings.default_security_profile_id {
+                return securityprofile.id == x;
+            } else {
+                return false;
+            });
+        Ok(result.cloned())
     }
 }

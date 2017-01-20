@@ -84,6 +84,8 @@ fn main() {
 
     println!("{:?}", client.security_profiles("toto@toto.com").unwrap());
     println!("{:?}", client.enterprise_settings().unwrap());
+    println!("{:?}",
+             client.default_security_profile("toto@toto.com").unwrap());
 
     //
     // let url = Url::parse("https://httpbin.org/post").unwrap();

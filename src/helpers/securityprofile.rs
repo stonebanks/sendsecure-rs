@@ -1,6 +1,6 @@
 use helpers::value::Value;
 
-#[derive(Debug, RustcDecodable)]
+#[derive(Debug, RustcDecodable, Clone)]
 pub struct SecurityProfile {
     pub id: i32,
     pub name: Option<String>,
