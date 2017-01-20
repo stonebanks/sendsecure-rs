@@ -1,11 +1,9 @@
 use std::cmp::Ordering;
-use rustc_serialize::json::Json;
 use std::option::Option;
-use std::collections::HashMap;
-use hyper::{client, error, status, method, header, net};
+use hyper::{client, status, method, header, net};
 use std::io::Read;
-use error::SendSecure;
-use multipart::client::{Multipart, HttpStream};
+use error::{SendSecureResult, SendSecureError};
+use multipart::client::Multipart;
 use url::Url;
 // use reqwest::header::Headers;
 // use serde_json
@@ -13,8 +11,8 @@ use url::Url;
 pub fn make_request(method: method::Method,
                     url: &str,
                     mut params: Option<String>,
-                    mut headers: Option<header::Headers>)
-                    -> SendSecure::SendSecureResult<String> {
+                    headers: Option<header::Headers>)
+                    -> SendSecureResult<String> {
     let client = client::Client::new();
     let mut request = client.request(method, url);
     let hdrs = match headers {
@@ -36,31 +34,25 @@ pub fn make_request(method: method::Method,
     let status_code = res.status.class().default_code();
     res = try!(match status_code.cmp(&status::StatusCode::BadRequest) {
         Ordering::Less => Ok(res),
-        Ordering::Greater | Ordering::Equal => {
-            Err(SendSecure::SendSecureError::ResponseError(status_code))
-        }
+        Ordering::Greater | Ordering::Equal => Err(SendSecureError::ResponseError(status_code)),
     });
     let mut body = String::new();
     res.read_to_string(&mut body)?;
     Ok(body)
 }
 
-pub fn post_file<F>(upload_url: Url, mut f: F) -> SendSecure::SendSecureResult<String>
-    where F: FnMut(&mut Multipart<client::Request<net::Streaming>>)
-                   -> SendSecure::SendSecureResult<()>
+pub fn post_file<F>(upload_url: Url, mut f: F) -> SendSecureResult<String>
+    where F: FnMut(&mut Multipart<client::Request<net::Streaming>>) -> SendSecureResult<()>
 {
     let request = client::Request::new(method::Method::Post, upload_url)?;
     let mut multipart = Multipart::from_request(request)?;
 
-    // multipart.write_file("file", file_path)?;
     f(&mut multipart);
     let mut res = multipart.send()?;
     let status_code = res.status.class().default_code();
     res = try!(match status_code.cmp(&status::StatusCode::BadRequest) {
         Ordering::Less => Ok(res),
-        Ordering::Greater | Ordering::Equal => {
-            Err(SendSecure::SendSecureError::ResponseError(status_code))
-        }
+        Ordering::Greater | Ordering::Equal => Err(SendSecureError::ResponseError(status_code)),
     });
     let mut body = String::new();
     res.read_to_string(&mut body)?;

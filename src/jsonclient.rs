@@ -1,4 +1,4 @@
-use error::SendSecure;
+use error::{SendSecureResult, SendSecureError};
 use utils::requester::{make_request, post_file};
 use hyper::{header, method, client};
 use url::Url;
@@ -18,10 +18,7 @@ pub struct JsonClient {
 
 
 pub trait UploadFileWithPath {
-    fn upload_file(&mut self,
-                   upload_url: Url,
-                   file_path: &Path)
-                   -> SendSecure::SendSecureResult<String>;
+    fn upload_file(&mut self, upload_url: Url, file_path: &Path) -> SendSecureResult<String>;
 }
 
 pub trait UploadFileWithStream {
@@ -30,7 +27,7 @@ pub trait UploadFileWithStream {
                              stream: &mut St,
                              content_type: Option<Mime>,
                              file_name: String)
-                             -> SendSecure::SendSecureResult<String>;
+                             -> SendSecureResult<String>;
 }
 
 impl JsonClient {
@@ -54,7 +51,7 @@ impl JsonClient {
         }
     }
 
-    fn get_sendsecure_endpoint(&mut self) -> SendSecure::SendSecureResult<Option<Url>> {
+    fn get_sendsecure_endpoint(&mut self) -> SendSecureResult<Option<Url>> {
         let formatted_url = format!("{}/services/{}/sendsecure/server/url",
                                     self.endpoint,
                                     self.enterprise_account);
@@ -67,7 +64,7 @@ impl JsonClient {
         Ok(self.sendsecure_url.to_owned())
     }
 
-    pub fn new_safebox(&mut self, user_email: &str) -> SendSecure::SendSecureResult<String> {
+    pub fn new_safebox(&mut self, user_email: &str) -> SendSecureResult<String> {
         let suffix = format!("api/v2/safeboxes/new?user_email={}&locale={}",
                              user_email,
                              self.locale);
@@ -81,11 +78,11 @@ impl JsonClient {
                                       Some(headers))?;
             Ok(result)
         } else {
-            Err(SendSecure::SendSecureError::UnexpectedError)
+            Err(SendSecureError::UnexpectedError)
         }
     }
 
-    pub fn security_profiles(&mut self, user_email: &str) -> SendSecure::SendSecureResult<String> {
+    pub fn security_profiles(&mut self, user_email: &str) -> SendSecureResult<String> {
         let suffix = format!("api/v2/enterprises/{}/security_profiles?user_email={}&locale={}",
                              self.enterprise_account,
                              user_email,
@@ -100,11 +97,11 @@ impl JsonClient {
                                       Some(headers))?;
             Ok(result)
         } else {
-            Err(SendSecure::SendSecureError::UnexpectedError)
+            Err(SendSecureError::UnexpectedError)
         }
     }
 
-    pub fn enterprise_settings(&mut self) -> SendSecure::SendSecureResult<String> {
+    pub fn enterprise_settings(&mut self) -> SendSecureResult<String> {
         let suffix = format!("api/v2/enterprises/{}/settings?locale={}",
                              self.enterprise_account,
                              self.locale);
@@ -118,11 +115,11 @@ impl JsonClient {
                                       Some(headers))?;
             Ok(result)
         } else {
-            Err(SendSecure::SendSecureError::UnexpectedError)
+            Err(SendSecureError::UnexpectedError)
         }
     }
 
-    pub fn commit_safebox(&mut self, safebox_json: String) -> SendSecure::SendSecureResult<String> {
+    pub fn commit_safebox(&mut self, safebox_json: String) -> SendSecureResult<String> {
         let suffix = format!("api/v2/safeboxes?locale={}", self.locale);
         if let Some(sendsecure_endpoint) = self.get_sendsecure_endpoint()? {
             let mut headers = header::Headers::new();
@@ -134,16 +131,13 @@ impl JsonClient {
                                       Some(headers))?;
             Ok(result)
         } else {
-            Err(SendSecure::SendSecureError::UnexpectedError)
+            Err(SendSecureError::UnexpectedError)
         }
     }
 }
 
 impl UploadFileWithPath for JsonClient {
-    fn upload_file(&mut self,
-                   upload_url: Url,
-                   file_path: &Path)
-                   -> SendSecure::SendSecureResult<String> {
+    fn upload_file(&mut self, upload_url: Url, file_path: &Path) -> SendSecureResult<String> {
         post_file(upload_url, |mut multipart| {
             try!(multipart.write_file("file", file_path));
             Ok(())
@@ -157,7 +151,7 @@ impl UploadFileWithStream for JsonClient {
                              stream: &mut St,
                              content_type: Option<Mime>,
                              file_name: String)
-                             -> SendSecure::SendSecureResult<String> {
+                             -> SendSecureResult<String> {
         post_file(upload_url, |mut multipart| {
             try!(multipart.write_stream("file",
                                         stream,

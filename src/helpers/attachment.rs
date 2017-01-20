@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::path::Path;
-use error::SendSecure;
+use error::{SendSecureResult, SendSecureError};
 use std::ffi::OsStr;
 
 #[derive(Debug)]
@@ -14,9 +14,7 @@ pub struct Attachment<'a> {
 
 
 impl<'a> Attachment<'a> {
-    pub fn new(path: &Path,
-               content_type: Option<String>)
-               -> SendSecure::SendSecureResult<Attachment> {
+    pub fn new(path: &Path, content_type: Option<String>) -> SendSecureResult<Attachment> {
         let file = try!(File::open(path));
         Ok(Attachment {
             file_name: path.file_name(),
