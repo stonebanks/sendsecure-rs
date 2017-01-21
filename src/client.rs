@@ -7,7 +7,7 @@ use utils::requester::make_request;
 use rustc_serialize::json;
 use jsonclient::JsonClient;
 use helpers::{safebox, securityprofile, enterprisesettings};
-use response;
+use json_objects::response;
 
 pub struct Client {
     jsonclient: JsonClient,

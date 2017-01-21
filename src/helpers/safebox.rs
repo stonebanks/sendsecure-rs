@@ -2,9 +2,9 @@ use helpers::securityprofile::SecurityProfile;
 use helpers::attachment::Attachment;
 use helpers::recipient::Recipient;
 
-struct CommitSafeboxRequest {
-    pub safebox: CommitSafebox,
-}
+// struct CommitSafeboxRequest {
+//     pub safebox: CommitSafebox,
+// }
 
 #[derive(Debug)]
 pub struct Safebox<'a> {
@@ -15,8 +15,8 @@ pub struct Safebox<'a> {
     pub upload_url: Option<String>,
     pub user_email: String,
     pub public_encryption_key: Option<String>,
-    pub attachments: Vec<Attachment<'a>>,
-    pub recipient: Vec<Recipient>,
+    pub attachments: Option<Vec<Attachment<'a>>>,
+    pub recipients: Option<Vec<Recipient>>,
 }
 
 
@@ -27,8 +27,8 @@ impl<'a> Safebox<'a> {
             guid: None,
             subject: None,
             message: None,
-            attachments: vec![],
-            recipient: vec![],
+            attachments: None,
+            recipients: None,
             public_encryption_key: None,
             upload_url: None,
             security_profile: None,

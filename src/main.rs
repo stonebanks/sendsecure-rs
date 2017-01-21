@@ -12,9 +12,9 @@ mod error;
 mod client;
 mod helpers;
 mod jsonclient;
-mod response;
+mod json_objects;
 
-use response::success::security_profiles::SecurityProfiles;
+use json_objects::response::success::security_profiles::SecurityProfiles;
 use error::SendSecureResult;
 // use client::SendSecure;
 // use url::Url;
@@ -49,7 +49,8 @@ fn main() {
 
 		}]}"#;
     //,"updated_at":"2016-09-14T18:41:23.043Z","allowed_login_attempts":{"value":10,"modifiable":false},"allow_remember_me":{"value":true,"modifiable":false},"allow_sms":{"value":true,"modifiable":false},"allow_voice":{"value":true,"modifiable":false},"allow_email":{"value":true,"modifiable":false},"code_time_limit":{"value":5,"modifiable":false},"code_length":{"value":6,"modifiable":false},"auto_extend_value":{"value":6,"modifiable":false},"auto_extend_unit":{"value":"hours","modifiable":false},"two_factor_required":{"value":true,"modifiable":false},"encrypt_attachments":{"value":true,"modifiable":false},"encrypt_message":{"value":true,"modifiable":false},"expiration_value":{"value":7,"modifiable":false},"expiration_unit":{"value":"days","modifiable":false},"reply_enabled":{"value":true,"modifiable":true},"group_replies":{"value":true,"modifiable":false},"retention_period_type":{"value":"discard_at_expiration","modifiable":false},"retention_period_value":{"value":null,"modifiable":false},"retention_period_unit":{"value":null,"modifiable":false}
-    let toto: response::success::security_profiles::SecurityProfiles = json::decode(secu).unwrap();
+    let toto: json_objects::response::success::security_profiles::SecurityProfiles =
+        json::decode(secu).unwrap();
 
     println!("{:?}", toto);
     //
