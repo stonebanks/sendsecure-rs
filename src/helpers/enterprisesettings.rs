@@ -1,6 +1,5 @@
 use rustc_serialize::{Decodable, Decoder};
 use std::result::Result;
-use helpers::value::Value;
 
 #[derive(Debug)]
 pub enum Mode {

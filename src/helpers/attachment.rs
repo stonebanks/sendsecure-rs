@@ -27,4 +27,8 @@ impl<'a> Attachment<'a> {
             },
         })
     }
+
+    pub fn into_guid(self) -> String {
+        self.guid.unwrap_or_else(String::new)
+    }
 }

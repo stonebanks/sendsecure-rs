@@ -6,8 +6,8 @@ use error::{SendSecureError, SendSecureResult};
 use utils::requester::make_request;
 use rustc_serialize::json;
 use jsonclient::JsonClient;
-use helpers::{safebox, securityprofile, enterprisesettings};
-use json_objects::response;
+use helpers::{safebox, securityprofile, enterprisesettings, safeboxresponse};
+use json_objects::{response, request};
 
 pub struct Client {
     jsonclient: JsonClient,
@@ -31,8 +31,8 @@ impl Client {
         println!("{}", formatted_url);
         let mut url = make_request(method::Method::Get, formatted_url.as_str(), None, None)?;
         url = format!("{0}api/user_token", url);
-        //println!("{}", url);
-        //let url: &str = "http://httpbin.org/post";//"https://secure.bixi.com/data/stations.json";
+        // println!("{}", url);
+        // let url: &str = "http://httpbin.org/post";//"https://secure.bixi.com/data/stations.json";
         let mut params = HashMap::new();
         params.insert("permalink", enterprise_account);
         params.insert("username", username);
@@ -90,9 +90,15 @@ impl Client {
         Ok(safebox)
     }
 
-    // pub fn commit_safebox(&mut self, safebox: safebox::Safebox) {
-    //     let temp = self.jsonclient.commit_safebox(safebox_json)
-    // }
+    pub fn commit_safebox(&mut self,
+                          safebox: safebox::Safebox)
+                          -> SendSecureResult<safeboxresponse::SafeboxResponse> {
+        let commit_safebox = request::commit_safebox::CommitSafebox::new(safebox);
+        let request = json::encode(&commit_safebox)?;
+        let string = self.jsonclient.commit_safebox(request)?;
+        let response: safeboxresponse::SafeboxResponse = json::decode(&string)?;
+        Ok(response)
+    }
 
     pub fn security_profiles(&mut self,
                              user_email: &str)

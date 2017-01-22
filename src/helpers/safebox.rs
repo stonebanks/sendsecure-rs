@@ -17,6 +17,7 @@ pub struct Safebox<'a> {
     pub public_encryption_key: Option<String>,
     pub attachments: Option<Vec<Attachment<'a>>>,
     pub recipients: Option<Vec<Recipient>>,
+    pub notification_language: String,
 }
 
 
@@ -32,8 +33,9 @@ impl<'a> Safebox<'a> {
             public_encryption_key: None,
             upload_url: None,
             security_profile: None,
+            notification_language: "en".to_string(),
         }
     }
 
-    //pub fn to_json() -> String {}
+    // pub fn to_json() -> String {}
 }
