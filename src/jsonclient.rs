@@ -25,7 +25,7 @@ pub trait UploadFileWithStream {
     fn upload_file<St: Read>(&mut self,
                              upload_url: Url,
                              stream: &mut St,
-                             content_type: Option<Mime>,
+                             content_type: Mime,
                              file_name: String)
                              -> SendSecureResult<String>;
 }
@@ -149,14 +149,14 @@ impl UploadFileWithStream for JsonClient {
     fn upload_file<St: Read>(&mut self,
                              upload_url: Url,
                              stream: &mut St,
-                             content_type: Option<Mime>,
+                             content_type: Mime,
                              file_name: String)
                              -> SendSecureResult<String> {
         post_file(upload_url, |mut multipart| {
             try!(multipart.write_stream("file",
                                         stream,
                                         Some(file_name.as_str()),
-                                        content_type.to_owned()));
+                                        Some(content_type.to_owned())));
             Ok(())
         })
     }
