@@ -83,20 +83,23 @@ impl Client {
     pub fn submit_safebox<'a, 'b>(&'a mut self,
                                   safebox: &'b mut safebox::Safebox<'b>)
                                   -> SendSecureResult<safeboxresponse::SafeboxResponse> {
-        {
-            self.initialize_safebox(safebox)?;
-            if safebox.security_profile.is_none() {
-                let result = self.default_security_profile(safebox.user_email.as_str())?;
-                safebox.security_profile = result;
-            }
-
-            let upload_url = safebox.upload_url.as_ref().map(String::as_str).unwrap_or("");
-            safebox.attachments.as_mut().map(|s| for elem in s.iter_mut() {
-                self.upload_attachement(upload_url, elem);
-            });
+        let mut safebox_output = self.initialize_safebox(safebox)?;
+        if safebox_output.security_profile.is_none() {
+            let result = self.default_security_profile(safebox_output.user_email.as_str())?;
+            safebox_output.security_profile = result;
         }
-        let mut test = safebox.clone();
-        return self.commit_safebox(&mut test);
+
+
+        let upload_url = safebox_output.upload_url.as_ref().map(String::as_str).unwrap_or("");
+        let mut temp: Vec<attachment::Attachment> = vec![];
+        safebox.attachments.as_ref().map(|s| for elem in s.iter() {
+            let attachment = self.upload_attachement(upload_url, elem).unwrap();
+            temp.push(attachment);
+        });
+        safebox_output.attachments = Some(temp);
+
+
+        return self.commit_safebox(safebox_output);
     }
 
     pub fn initialize_safebox<'a, 'b>(&'a mut self,
@@ -113,7 +116,7 @@ impl Client {
 
     pub fn upload_attachement<'a, 'b>(&'a mut self,
                                       upload_url: &str,
-                                      attachment: &'b mut attachment::Attachment<'b>)
+                                      attachment: &attachment::Attachment<'b>)
                                       -> SendSecureResult<attachment::Attachment<'b>> {
         let upload_url = Url::parse(upload_url)?;
         let mut file = File::open(attachment.file_path)?;
@@ -127,12 +130,13 @@ impl Client {
                              .unwrap())?;
         let response_object: response::success::upload_file::UploadFile =
             json::decode(&response.as_str())?;
-        attachment.guid = Some(response_object.temporary_document.document_guid);
-        Ok(attachment.clone())
+        let mut attachment_output = attachment.clone();
+        attachment_output.guid = Some(response_object.temporary_document.document_guid);
+        Ok(attachment_output.clone())
     }
 
     pub fn commit_safebox(&mut self,
-                          safebox: &mut safebox::Safebox)
+                          safebox: safebox::Safebox)
                           -> SendSecureResult<safeboxresponse::SafeboxResponse> {
         let test = safebox.clone();
         let commit_safebox = request::commit_safebox::CommitSafebox::new(test);
