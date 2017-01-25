@@ -5,25 +5,25 @@ use std::ffi::OsStr;
 use std::fs::metadata;
 use mime::Mime;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Attachment<'a> {
     pub guid: Option<String>,
     pub file_name: Option<&'a OsStr>,
     pub content_type: Mime,
     pub size: u64,
-    pub file: File,
+    pub file_path: &'a Path,
 }
 
 
 impl<'a> Attachment<'a> {
     pub fn new(path: &Path, content_type: Option<Mime>) -> SendSecureResult<Attachment> {
-        let file = File::open(path)?;
+        // let file = File::open(path)?;
         let metadata = metadata(path)?;
         Ok(Attachment {
             file_name: path.file_name(),
             guid: None,
             size: metadata.len(),
-            file: file,
+            file_path: path,
             content_type: match content_type {
                 Some(x) => x,
                 None => "application/octet-stream".parse().unwrap(),

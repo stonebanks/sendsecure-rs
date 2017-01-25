@@ -9,6 +9,7 @@ use jsonclient::{JsonClient, UploadFileWithStream};
 use helpers::{safebox, securityprofile, enterprisesettings, safeboxresponse, attachment};
 use json_objects::{response, request};
 use url::Url;
+use std::fs::File;
 
 pub struct Client {
     jsonclient: JsonClient,
@@ -79,63 +80,46 @@ impl Client {
         }
     }
 
-    pub fn submit_safebox<'b, 'a>(&'b mut self,
-                                  safebox: &'b mut safebox::Safebox<'a>)
+    pub fn submit_safebox<'a, 'b>(&'a mut self,
+                                  safebox: &'b mut safebox::Safebox<'b>)
                                   -> SendSecureResult<safeboxresponse::SafeboxResponse> {
-        self.initialize_safebox(safebox)?;
-        // if safebox.attachments.is_some() {
-        //     for attachment in safebox.attachments.as_ref().unwrap().iter_mut() {
-        //         self.upload_attachement(safebox, attachment);
-        //     }
-        // }
-        safebox.attachments.iter_mut().next().map(|s| {
-            let iterator = s.iter_mut();
-            for elem in iterator {
-                self.upload_attachement(safebox, elem);
-                //(*elem).guid = Some("gg".to_string());
+        {
+            self.initialize_safebox(safebox)?;
+            if safebox.security_profile.is_none() {
+                let result = self.default_security_profile(safebox.user_email.as_str())?;
+                safebox.security_profile = result;
             }
-        });
-        // .map(|attachments| {
-        //     for attachment in attachments.iter_mut() {
-        //         self.upload_attachement(safebox, attachment);
-        //     }
-        //     // safebox.attachments
-        //     Vec::<u32>::new()
-        // });
-        // match safebox.attachments {
-        //     Some(ref mut attachments) => {
-        //         for attachment in attachments.iter_mut() {
-        //             self.upload_attachement(safebox, attachment);
-        //         }
-        //     }
-        //     None => safebox.attachments = Some(vec![]),
-        // }
-        // for attachment in safebox.attachments
 
-
-        unimplemented!()
+            let upload_url = safebox.upload_url.as_ref().map(String::as_str).unwrap_or("");
+            safebox.attachments.as_mut().map(|s| for elem in s.iter_mut() {
+                self.upload_attachement(upload_url, elem);
+            });
+        }
+        let mut test = safebox.clone();
+        return self.commit_safebox(&mut test);
     }
 
-    pub fn initialize_safebox<'b, 'a>(&'b mut self,
-                                      safebox: &'b mut safebox::Safebox<'a>)
-                                      -> SendSecureResult<&'b mut safebox::Safebox<'a>> {
+    pub fn initialize_safebox<'a, 'b>(&'a mut self,
+                                      safebox: &'a mut safebox::Safebox<'b>)
+                                      -> SendSecureResult<safebox::Safebox<'b>> {
         let temp = self.jsonclient
             .new_safebox(safebox.user_email.as_str())?;
         let response: response::success::new_safebox::NewSafebox = json::decode(&temp)?;
         safebox.guid = Some(response.guid);
         safebox.public_encryption_key = Some(response.public_encryption_key);
         safebox.upload_url = Some(response.upload_url);
-        Ok(safebox)
+        Ok(safebox.clone())
     }
 
-    pub fn upload_attachement<'b, 'a>(&'b mut self,
-                                      safebox: &mut safebox::Safebox,
-                                      attachment: &'b mut attachment::Attachment<'a>)
-                                      -> SendSecureResult<&'b mut attachment::Attachment<'a>> {
-        let upload_url = Url::parse(safebox.upload_url.as_ref().map(String::as_str).unwrap_or(""))?;
+    pub fn upload_attachement<'a, 'b>(&'a mut self,
+                                      upload_url: &str,
+                                      attachment: &'b mut attachment::Attachment<'b>)
+                                      -> SendSecureResult<attachment::Attachment<'b>> {
+        let upload_url = Url::parse(upload_url)?;
+        let mut file = File::open(attachment.file_path)?;
         let response = self.jsonclient
             .upload_file(upload_url,
-                         &mut attachment.file,
+                         &mut file,
                          attachment.content_type.to_owned(),
                          attachment.file_name
                              .and_then(|s| s.to_str())
@@ -144,13 +128,14 @@ impl Client {
         let response_object: response::success::upload_file::UploadFile =
             json::decode(&response.as_str())?;
         attachment.guid = Some(response_object.temporary_document.document_guid);
-        Ok(attachment)
+        Ok(attachment.clone())
     }
 
     pub fn commit_safebox(&mut self,
-                          safebox: safebox::Safebox)
+                          safebox: &mut safebox::Safebox)
                           -> SendSecureResult<safeboxresponse::SafeboxResponse> {
-        let commit_safebox = request::commit_safebox::CommitSafebox::new(safebox);
+        let test = safebox.clone();
+        let commit_safebox = request::commit_safebox::CommitSafebox::new(test);
         let request = json::encode(&commit_safebox)?;
         let string = self.jsonclient.commit_safebox(request)?;
         let response: safeboxresponse::SafeboxResponse = json::decode(&string)?;
