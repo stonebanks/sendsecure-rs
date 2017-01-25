@@ -6,7 +6,7 @@ use helpers::recipient::Recipient;
 //     pub safebox: CommitSafebox,
 // }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Safebox<'a> {
     pub guid: Option<String>,
     pub subject: Option<String>,

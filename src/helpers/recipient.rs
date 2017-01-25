@@ -1,4 +1,4 @@
-#[derive(Debug, RustcDecodable, RustcEncodable)]
+#[derive(Debug, RustcDecodable, RustcEncodable, Clone)]
 pub struct Recipient {
     pub email: String,
     pub contact_methods: Vec<String>,
