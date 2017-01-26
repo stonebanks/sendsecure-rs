@@ -1,6 +1,6 @@
 use error::{SendSecureResult, SendSecureError};
 use utils::requester::{make_request, post_file};
-use hyper::{header, method, client};
+use hyper::{header, method};
 use url::Url;
 use std::path::Path;
 use std::io::Read;
@@ -26,7 +26,7 @@ pub trait UploadFileWithStream {
                              upload_url: Url,
                              stream: &mut St,
                              content_type: Mime,
-                             file_name: String)
+                             file_name: &str)
                              -> SendSecureResult<String>;
 }
 
@@ -39,14 +39,8 @@ impl JsonClient {
         JsonClient {
             api_token: api_token,
             enterprise_account: enterprise_account,
-            endpoint: match endpoint {
-                Some(x) => x,
-                None => "https://portal.xmedius.com".to_string(),
-            },
-            locale: match locale {
-                Some(x) => x,
-                None => "en".to_string(),
-            },
+            endpoint: endpoint.unwrap_or("https://portal.xmedius.com".to_string()),
+            locale: locale.unwrap_or("en".to_string()),
             sendsecure_url: None,
         }
     }
@@ -150,12 +144,12 @@ impl UploadFileWithStream for JsonClient {
                              upload_url: Url,
                              stream: &mut St,
                              content_type: Mime,
-                             file_name: String)
+                             file_name: &str)
                              -> SendSecureResult<String> {
         post_file(upload_url, |mut multipart| {
             try!(multipart.write_stream("file",
                                         stream,
-                                        Some(file_name.as_str()),
+                                        Some(file_name),
                                         Some(content_type.to_owned())));
             Ok(())
         })

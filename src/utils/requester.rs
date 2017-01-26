@@ -1,12 +1,14 @@
 use std::cmp::Ordering;
 use std::option::Option;
+
+
+// use hyper::header::{Headers, Accept, qitem};
 use hyper::{client, status, method, header, net};
+use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use std::io::Read;
 use error::{SendSecureResult, SendSecureError};
-use multipart::client::Multipart;
+use multipart::client::{Multipart, SizedRequest};
 use url::Url;
-// use reqwest::header::Headers;
-// use serde_json
 
 pub fn make_request(method: method::Method,
                     url: &str,
@@ -42,13 +44,21 @@ pub fn make_request(method: method::Method,
 }
 
 pub fn post_file<F>(upload_url: Url, mut f: F) -> SendSecureResult<String>
-    where F: FnMut(&mut Multipart<client::Request<net::Streaming>>) -> SendSecureResult<()>
+    where F: FnMut(&mut Multipart<SizedRequest<client::Request<net::Fresh>>>)
+                   -> SendSecureResult<()>
 {
-    let request = client::Request::new(method::Method::Post, upload_url)?;
-    let mut multipart = Multipart::from_request(request)?;
+    let mut request = client::Request::new(method::Method::Post, upload_url)?;
+
+    let mut headers = request.headers_mut();
+    headers.set(header::Accept(vec![header::qitem(Mime(TopLevel::Application,
+                                                       SubLevel::Json,
+                                                       vec![(Attr::Charset, Value::Utf8)]))]));
+    //let stream = request.start()?;
+    let mut multipart = Multipart::from_request_sized(request)?;
 
     f(&mut multipart);
     let mut res = multipart.send()?;
+    println!("{:?}", res);
     let status_code = res.status.class().default_code();
     res = try!(match status_code.cmp(&status::StatusCode::BadRequest) {
         Ordering::Less => Ok(res),

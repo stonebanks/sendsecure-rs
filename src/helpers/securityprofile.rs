@@ -78,31 +78,27 @@ impl Decodable for RetentionPeriodType {
 
 impl Encodable for TimeUnit {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-        s.emit_enum("TimeUnit", |s| {
-            match *self {
-                TimeUnit::Hours => s.emit_enum_variant("hours", 0, 0, |s| Ok(())),
-                TimeUnit::Days => s.emit_enum_variant("days", 1, 0, |s| Ok(())),
-                TimeUnit::Months => s.emit_enum_variant("months", 2, 0, |s| Ok(())),
-                TimeUnit::Weeks => s.emit_enum_variant("weeks", 3, 0, |s| Ok(())),
-                TimeUnit::Years => s.emit_enum_variant("years", 4, 0, |s| Ok(())),
-            }
+        s.emit_enum("TimeUnit", |s| match *self {
+            TimeUnit::Hours => s.emit_enum_variant("hours", 0, 0, |_| Ok(())),
+            TimeUnit::Days => s.emit_enum_variant("days", 1, 0, |_| Ok(())),
+            TimeUnit::Months => s.emit_enum_variant("months", 2, 0, |_| Ok(())),
+            TimeUnit::Weeks => s.emit_enum_variant("weeks", 3, 0, |_| Ok(())),
+            TimeUnit::Years => s.emit_enum_variant("years", 4, 0, |_| Ok(())),
         })
     }
 }
 
 impl Encodable for RetentionPeriodType {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-        s.emit_enum("RetentionPeriodType", |s| {
-            match *self {
-                RetentionPeriodType::DiscardAtExpiration => {
-                    s.emit_enum_variant("discard_at_expiration", 0, 0, |s| Ok(()))
-                }
-                RetentionPeriodType::RetainAtExpiration => {
-                    s.emit_enum_variant("retain_at_expiration", 1, 0, |s| Ok(()))
-                }
-                RetentionPeriodType::DoNotDiscard => {
-                    s.emit_enum_variant("do_not_discard", 2, 0, |s| Ok(()))
-                }
+        s.emit_enum("RetentionPeriodType", |s| match *self {
+            RetentionPeriodType::DiscardAtExpiration => {
+                s.emit_enum_variant("discard_at_expiration", 0, 0, |_| Ok(()))
+            }
+            RetentionPeriodType::RetainAtExpiration => {
+                s.emit_enum_variant("retain_at_expiration", 1, 0, |_| Ok(()))
+            }
+            RetentionPeriodType::DoNotDiscard => {
+                s.emit_enum_variant("do_not_discard", 2, 0, |_| Ok(()))
             }
         })
     }

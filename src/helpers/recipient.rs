@@ -1,20 +1,22 @@
+use helpers::contactmethod;
+
 #[derive(Debug, RustcDecodable, RustcEncodable, Clone)]
 pub struct Recipient {
     pub email: String,
-    pub contact_methods: Vec<String>,
-    pub firstname: Option<String>,
-    pub lastname: Option<String>,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
     pub company_name: Option<String>,
+    pub contact_methods: Vec<contactmethod::ContactMethod>,
 }
 
 impl Recipient {
-    pub fn new(email: String) -> Recipient {
+    pub fn new(email: &str) -> Recipient {
         Recipient {
-            email: email,
-            contact_methods: vec![],
-            firstname: None,
-            lastname: None,
+            email: email.to_string(),
+            first_name: None,
+            last_name: None,
             company_name: None,
+            contact_methods: vec![],
         }
     }
 }

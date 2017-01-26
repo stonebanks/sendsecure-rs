@@ -1,6 +1,5 @@
-use std::fs::File;
 use std::path::Path;
-use error::{SendSecureResult, SendSecureError};
+use error::SendSecureResult;
 use std::ffi::OsStr;
 use std::fs::metadata;
 use mime::Mime;
@@ -17,17 +16,13 @@ pub struct Attachment<'a> {
 
 impl<'a> Attachment<'a> {
     pub fn new(path: &Path, content_type: Option<Mime>) -> SendSecureResult<Attachment> {
-        // let file = File::open(path)?;
         let metadata = metadata(path)?;
         Ok(Attachment {
             file_name: path.file_name(),
             guid: None,
             size: metadata.len(),
             file_path: path,
-            content_type: match content_type {
-                Some(x) => x,
-                None => "application/octet-stream".parse().unwrap(),
-            },
+            content_type: content_type.unwrap_or("application/octet-stream".parse().unwrap()),
         })
     }
 

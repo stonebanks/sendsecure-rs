@@ -15,21 +15,21 @@ pub struct Safebox<'a> {
     pub upload_url: Option<String>,
     pub user_email: String,
     pub public_encryption_key: Option<String>,
-    pub attachments: Option<Vec<Attachment<'a>>>,
-    pub recipients: Option<Vec<Recipient>>,
+    pub attachments: Vec<Attachment<'a>>,
+    pub recipients: Vec<Recipient>,
     pub notification_language: String,
 }
 
 
 impl<'a> Safebox<'a> {
-    pub fn new(user_email: String) -> Safebox<'a> {
+    pub fn new(user_email: &str) -> Safebox<'a> {
         Safebox {
-            user_email: user_email,
+            user_email: user_email.to_string(),
             guid: None,
             subject: None,
             message: None,
-            attachments: None,
-            recipients: None,
+            attachments: vec![],
+            recipients: vec![],
             public_encryption_key: None,
             upload_url: None,
             security_profile: None,
