@@ -1,11 +1,14 @@
 use error::{SendSecureResult, SendSecureError};
-use utils::requester::{make_request, post_file};
+use utils::requester::make_request;
 use hyper::{header, method};
 use url::Url;
 use std::path::Path;
 use std::io::Read;
-use multipart::client::Multipart;
-use mime::Mime;
+use hyper::header::{Headers, ContentDisposition, DispositionParam, ContentType, DispositionType,
+                    ContentLength, Accept, qitem};
+use mime::{Mime, TopLevel, SubLevel, Attr, Value};
+use mime_multipart;
+use mime_guess;
 
 #[derive(Debug)]
 pub struct JsonClient {
@@ -22,12 +25,12 @@ pub trait UploadFileWithPath {
 }
 
 pub trait UploadFileWithStream {
-    fn upload_file<St: Read>(&mut self,
-                             upload_url: Url,
-                             stream: &mut St,
-                             content_type: Mime,
-                             file_name: &str)
-                             -> SendSecureResult<String>;
+    fn upload_file(&mut self,
+                   upload_url: Url,
+                   stream: Vec<u8>,
+                   file_name: &str,
+                   file_size: u64)
+                   -> SendSecureResult<String>;
 }
 
 impl JsonClient {
@@ -132,26 +135,63 @@ impl JsonClient {
 
 impl UploadFileWithPath for JsonClient {
     fn upload_file(&mut self, upload_url: Url, file_path: &Path) -> SendSecureResult<String> {
-        post_file(upload_url, |mut multipart| {
-            try!(multipart.write_file("file", file_path));
-            Ok(())
-        })
+        let mut stream: Vec<u8> = vec![];
+        let mut file = ::std::fs::File::open(file_path.clone())?;
+        let size: u64 = ::std::io::copy(&mut file, &mut stream)?;
+
+        UploadFileWithStream::upload_file(self,
+                                          upload_url,
+                                          stream,
+                                          file_path.file_name()
+                                              .and_then(|u| u.to_str())
+                                              .unwrap(),
+                                          size)
     }
 }
 
 impl UploadFileWithStream for JsonClient {
-    fn upload_file<St: Read>(&mut self,
-                             upload_url: Url,
-                             stream: &mut St,
-                             content_type: Mime,
-                             file_name: &str)
-                             -> SendSecureResult<String> {
-        post_file(upload_url, |mut multipart| {
-            try!(multipart.write_stream("file",
-                                        stream,
-                                        Some(file_name),
-                                        Some(content_type.to_owned())));
-            Ok(())
-        })
+    fn upload_file(&mut self,
+                   upload_url: Url,
+                   stream: Vec<u8>,
+                   file_name: &str,
+                   file_size: u64)
+                   -> SendSecureResult<String> {
+        let mut output: Vec<u8> = Vec::new();
+        let boundary = mime_multipart::generate_boundary();
+
+        let part = mime_multipart::Part {
+            headers: {
+                let mut h = Headers::new();
+                h.set(ContentType(mime_guess::guess_mime_type(file_name)));
+                h.set(ContentDisposition {
+                    disposition: DispositionType::Ext("form-data".to_owned()),
+                    parameters: vec![DispositionParam::Ext("name".to_owned(), "file".to_owned()),
+                                     DispositionParam::Ext("filename".to_owned(),
+                                                           file_name.to_owned())],
+                });
+                h.set(ContentLength(file_size));
+                h
+            },
+            body: stream,
+        };
+        let mut nodes: Vec<mime_multipart::Node> = Vec::new();
+        nodes.push(mime_multipart::Node::Part(part));
+        mime_multipart::write_multipart(&mut output, &boundary, &nodes)?;
+        let mut headers = Headers::new();
+        headers.set(Accept(vec![qitem(Mime(TopLevel::Application,
+                                           SubLevel::Json,
+                                           vec![(Attr::Charset, Value::Utf8)]))]));
+
+        headers.set(ContentType(Mime(TopLevel::Multipart,
+                                     SubLevel::FormData,
+                                     vec![(Attr::Boundary,
+                                           Value::Ext(String::from_utf8_lossy(&boundary)
+                                               .into_owned()))])));
+        let string = String::from_utf8_lossy(&output);
+        let result = make_request(method::Method::Post,
+                                  upload_url.as_str(),
+                                  Some(string.into_owned()),
+                                  Some(headers))?;
+        Ok(result)
     }
 }

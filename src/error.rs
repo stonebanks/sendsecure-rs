@@ -2,6 +2,7 @@ use std::io;
 use url::ParseError;
 use hyper::{error, status};
 use rustc_serialize::json;
+use mime_multipart;
 // We derive `Debug` because all types should probably derive `Debug`.
 // This gives us a reasonable human readable description of `SendSecureError` value
 #[derive(Debug)]
@@ -14,6 +15,7 @@ pub enum SendSecureError {
     UnexpectedResponseError(String),
     IoError(io::Error),
     UrlError(ParseError),
+    MimeMultipartError(mime_multipart::Error),
     UnexpectedError,
 }
 pub type SendSecureResult<T> = Result<T, SendSecureError>;
@@ -52,5 +54,11 @@ impl From<json::EncoderError> for SendSecureError {
 impl From<ParseError> for SendSecureError {
     fn from(err: ParseError) -> SendSecureError {
         SendSecureError::UrlError(err)
+    }
+}
+
+impl From<mime_multipart::Error> for SendSecureError {
+    fn from(err: mime_multipart::Error) -> SendSecureError {
+        SendSecureError::MimeMultipartError(err)
     }
 }

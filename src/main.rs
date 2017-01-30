@@ -1,8 +1,9 @@
 extern crate hyper;
 extern crate rustc_serialize;
 extern crate url;
-extern crate multipart;
 extern crate mime;
+extern crate mime_multipart;
+extern crate mime_guess;
 
 
 use rustc_serialize::json;
@@ -22,7 +23,7 @@ use url::Url;
 // use client::SendSecure;
 // use url::Url;
 // use std::path::Path;
-use jsonclient::UploadFileWithStream;
+use jsonclient::UploadFileWithPath;
 // use std::fs::File;
 
 
@@ -65,11 +66,14 @@ fn main() {
     // let ent = r#"{}"#;
     // println!("{:?}",
     //          json::decode::<helpers::enterprisesettings::EnterpriseSettings>(ent).unwrap());
-    // let mut jsonclient =
-    //     jsonclient::JsonClient::new("USER|ac1cf0f7-ca4e-4d4b-a3e4-9164608800c1".to_string(),
-    //                                 "acme".to_string(),
-    //                                 Some("https://portal.integration.xmedius.com".to_string()),
-    //                                 None);
+    let mut jsonclient =
+        jsonclient::JsonClient::new("USER|ac1cf0f7-ca4e-4d4b-a3e4-9164608800c1".to_string(),
+                                    "acme".to_string(),
+                                    Some("https://portal.integration.xmedius.com".to_string()),
+                                    None);
+
+    jsonclient.upload_file(Url::parse("http://httpbin.org/post").unwrap(),
+                           &Path::new("/tmp/toto.txt"));
     // //
     // let response = jsonclient.new_safebox("toto@toto.com").unwrap();
     // println!("{}", response);
@@ -100,34 +104,32 @@ fn main() {
     // let toutou = jsonclient.upload_file(url2, &mut file, "text/plain".parse().unwrap(), "toto");
     // println!("{:?}", toutou);
 
-    let user_email = "toto@toto.com";
-    let token = "USER|ac1cf0f7-ca4e-4d4b-a3e4-9164608800c1";
-    let enterprises_account = "acme";
-    let endpoint = "https://portal.integration.xmedius.com";
-    let mut safebox = helpers::safebox::Safebox::new(user_email);
-    safebox.subject = Some("Hello World".to_string());
-    safebox.message = Some("Son, you will find attached the evidence.".to_string());
-
-    let mut recipient = helpers::recipient::Recipient::new("allan.seymour@xmedius.com");
-    let contact_method = helpers::contactmethod::ContactMethod {
-        destination_type: helpers::contactmethod::DestinationType::CellPhone,
-        destination: "+15146384760".to_string(),
-    };
-    recipient.contact_methods.push(contact_method);
-    recipient.first_name = Some("Allan".to_string());
-    recipient.last_name = Some("Seymour".to_string());
-    recipient.company_name = Some("XMedius".to_string());
-    safebox.recipients.push(recipient);
-
-    safebox.attachments
-        .push(helpers::attachment::Attachment::new(Path::new(r#"e:\compile\auto\temp\toto.txt"#),
-                                                   None)
-            .unwrap());
-    //safebox.attachments.push(helpers::attachment::Attachment::new(Path::new(r#"C:/Users/allan.seymour/Pictures/30c744a23fc46a203003a6e2e8990465.jpg"#), Some("image/jpeg".parse().unwrap())).unwrap());
-    let mut client = client::Client::new(token, enterprises_account, Some(endpoint), None);
-    println!("{:?}", client.submit_safebox(&mut safebox));
-    //C:\Users\allan.seymour\Downloads
+    // let user_email = "toto@toto.com";
+    // let token = "USER|ac1cf0f7-ca4e-4d4b-a3e4-9164608800c1";
+    // let enterprises_account = "acme";
+    // let endpoint = "https://portal.integration.xmedius.com";
+    // let mut safebox = helpers::safebox::Safebox::new(user_email);
+    // safebox.subject = Some("Hello World".to_string());
+    // safebox.message = Some("Son, you will find attached the evidence.".to_string());
     //
+    // let mut recipient = helpers::recipient::Recipient::new("allan.seymour@xmedius.com");
+    // let contact_method = helpers::contactmethod::ContactMethod {
+    //     destination_type: helpers::contactmethod::DestinationType::CellPhone,
+    //     destination: "+15146384760".to_string(),
+    // };
+    // recipient.contact_methods.push(contact_method);
+    // recipient.first_name = Some("Allan".to_string());
+    // recipient.last_name = Some("Seymour".to_string());
+    // recipient.company_name = Some("XMedius".to_string());
+    // safebox.recipients.push(recipient);
+    //
+    // safebox.attachments
+    //     .push(helpers::attachment::Attachment::new(Path::new(r#"/tmp/toto.txt"#), None).unwrap());
+    // // safebox.attachments.push(helpers::attachment::Attachment::new(Path::new(r#"C:/Users/allan.seymour/Pictures/30c744a23fc46a203003a6e2e8990465.jpg"#), Some("image/jpeg".parse().unwrap())).unwrap());
+    // let mut client = client::Client::new(token, enterprises_account, Some(endpoint), None);
+    // println!("{:?}", client.submit_safebox(&mut safebox));
+    // // C:\Users\allan.seymour\Downloads
+    // //
 
 
 
