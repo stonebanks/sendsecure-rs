@@ -47,7 +47,10 @@ impl Client {
             params.insert("otp", "true");
         }
         let test = json::encode(&params)?;
-        let body = make_request(method::Method::Post, url.as_str(), Some(test), None)?;
+        let body = make_request(method::Method::Post,
+                                url.as_str(),
+                                Some(test.as_str().as_bytes()),
+                                None)?;
         println!("{}", body);
         let json_body = Json::from_str(body.as_str())?;
         if let Some(obj) = json_body.as_object() {
@@ -91,7 +94,7 @@ impl Client {
                 let attachment = self.upload_attachement(upload_url, elem)?;
                 attachments_out.push(attachment);
             }
-
+            println!("{:?}", attachments_out);
             safebox_output.attachments = attachments_out;
         }
         println!("{:?}", safebox_output.attachments);

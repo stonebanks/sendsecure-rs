@@ -3,15 +3,13 @@ use std::option::Option;
 
 
 // use hyper::header::{Headers, Accept, qitem};
-use hyper::{client, status, method, header, net};
-use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
+use hyper::{client, status, method, header};
 use std::io::Read;
 use error::{SendSecureResult, SendSecureError};
-use url::Url;
 
 pub fn make_request(method: method::Method,
                     url: &str,
-                    mut params: Option<String>,
+                    mut params: Option<&[u8]>,
                     headers: Option<header::Headers>)
                     -> SendSecureResult<String> {
     let client = client::Client::new();
@@ -21,7 +19,7 @@ pub fn make_request(method: method::Method,
         hdrs.set(header::ContentType::json());
     }
     if let Some(ref mut body) = params {
-        request = request.body(body.as_str());
+        request = request.body(body);
     }
     request = request.headers(hdrs);
     let mut res = request.send()?;

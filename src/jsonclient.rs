@@ -124,7 +124,7 @@ impl JsonClient {
                             vec![self.api_token.clone().into_bytes()]);
             let result = make_request(method::Method::Post,
                                       sendsecure_endpoint.join(suffix.as_str())?.as_str(),
-                                      Some(safebox_json),
+                                      Some(safebox_json.as_str().as_bytes()),
                                       Some(headers))?;
             Ok(result)
         } else {
@@ -176,7 +176,7 @@ impl UploadFileWithStream for JsonClient {
         };
         let mut nodes: Vec<mime_multipart::Node> = Vec::new();
         nodes.push(mime_multipart::Node::Part(part));
-        mime_multipart::write_multipart(&mut output, &boundary, &nodes)?;
+        let msize = mime_multipart::write_multipart(&mut output, &boundary, &nodes)?;
         let mut headers = Headers::new();
         headers.set(Accept(vec![qitem(Mime(TopLevel::Application,
                                            SubLevel::Json,
@@ -187,10 +187,11 @@ impl UploadFileWithStream for JsonClient {
                                      vec![(Attr::Boundary,
                                            Value::Ext(String::from_utf8_lossy(&boundary)
                                                .into_owned()))])));
-        let string = String::from_utf8_lossy(&output);
+        headers.set(ContentLength(msize as u64));
+        //let string = String::from_utf8_lossy(&output);
         let result = make_request(method::Method::Post,
                                   upload_url.as_str(),
-                                  Some(string.into_owned()),
+                                  Some(&output[..]),
                                   Some(headers))?;
         Ok(result)
     }
