@@ -9,8 +9,6 @@ use jsonclient::{JsonClient, UploadFileWithPath};
 use helpers::{safebox, securityprofile, enterprisesettings, safeboxresponse, attachment};
 use json_objects::{response, request};
 use url::Url;
-use std::fs::File;
-use std::ffi;
 
 pub struct Client {
     jsonclient: JsonClient,
@@ -31,11 +29,8 @@ impl Client {
                           one_time_password: bool)
                           -> SendSecureResult<String> {
         let formatted_url = format!("{0}/services/{1}/portal/host", endpoint, enterprise_account);
-        println!("{}", formatted_url);
         let mut url = make_request(method::Method::Get, formatted_url.as_str(), None, None)?;
         url = format!("{0}api/user_token", url);
-        // println!("{}", url);
-        // let url: &str = "http://httpbin.org/post";//"https://secure.bixi.com/data/stations.json";
         let mut params = HashMap::new();
         params.insert("permalink", enterprise_account);
         params.insert("username", username);
@@ -51,7 +46,6 @@ impl Client {
                                 url.as_str(),
                                 Some(test.as_str().as_bytes()),
                                 None)?;
-        println!("{}", body);
         let json_body = Json::from_str(body.as_str())?;
         if let Some(obj) = json_body.as_object() {
             if let Some(origin) = obj.get("token") {
@@ -71,10 +65,7 @@ impl Client {
             enterprise_account: enterprise_account.to_string(),
             endpoint: endpoint.unwrap_or("https://portal.xmedius.com").to_string(),
             locale: locale.unwrap_or("en").to_string(),
-            jsonclient: JsonClient::new(api_token.to_string(),
-                                        enterprise_account.to_string(),
-                                        endpoint.map(str::to_string),
-                                        locale.map(str::to_string)),
+            jsonclient: JsonClient::new(api_token, enterprise_account, endpoint, locale),
         }
     }
 
@@ -94,10 +85,8 @@ impl Client {
                 let attachment = self.upload_attachement(upload_url, elem)?;
                 attachments_out.push(attachment);
             }
-            println!("{:?}", attachments_out);
             safebox_output.attachments = attachments_out;
         }
-        println!("{:?}", safebox_output.attachments);
 
         return self.commit_safebox(safebox_output);
     }
@@ -119,7 +108,6 @@ impl Client {
                                       attachment: &mut attachment::Attachment<'b>)
                                       -> SendSecureResult<attachment::Attachment<'b>> {
         let upload_url = Url::parse(upload_url)?;
-        let mut file = File::open(attachment.file_path)?;
         let response = self.jsonclient
             .upload_file(upload_url, attachment.file_path)?;
         let response_object: response::success::upload_file::UploadFile =
@@ -134,9 +122,7 @@ impl Client {
                           -> SendSecureResult<safeboxresponse::SafeboxResponse> {
         let test = safebox.clone();
         let commit_safebox = request::commit_safebox::CommitSafebox::new(test);
-        println!("{:?}", commit_safebox);
         let request = json::encode(&commit_safebox)?;
-        println!("{:?}", request);
         let string = self.jsonclient.commit_safebox(request)?;
         let response: safeboxresponse::SafeboxResponse = json::decode(&string)?;
         Ok(response)

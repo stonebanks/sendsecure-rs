@@ -1,5 +1,5 @@
 [package]
-name = "sendsecure-rs"
+name = "sendsecure"
 version = "0.1.0"
 authors = ["Allan Seymour <banks.the.megalithic.stone@gmail.com>"]
 

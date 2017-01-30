@@ -2,7 +2,6 @@ use std::path::Path;
 use error::SendSecureResult;
 use std::ffi::OsStr;
 use std::fs::metadata;
-use mime::Mime;
 
 #[derive(Debug, Clone)]
 pub struct Attachment<'a> {

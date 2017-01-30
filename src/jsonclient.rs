@@ -3,7 +3,6 @@ use utils::requester::make_request;
 use hyper::{header, method};
 use url::Url;
 use std::path::Path;
-use std::io::Read;
 use hyper::header::{Headers, ContentDisposition, DispositionParam, ContentType, DispositionType,
                     ContentLength, Accept, qitem};
 use mime::{Mime, TopLevel, SubLevel, Attr, Value};
@@ -34,16 +33,16 @@ pub trait UploadFileWithStream {
 }
 
 impl JsonClient {
-    pub fn new(api_token: String,
-               enterprise_account: String,
-               endpoint: Option<String>,
-               locale: Option<String>)
+    pub fn new(api_token: &str,
+               enterprise_account: &str,
+               endpoint: Option<&str>,
+               locale: Option<&str>)
                -> JsonClient {
         JsonClient {
-            api_token: api_token,
-            enterprise_account: enterprise_account,
-            endpoint: endpoint.unwrap_or("https://portal.xmedius.com".to_string()),
-            locale: locale.unwrap_or("en".to_string()),
+            api_token: api_token.to_string(),
+            enterprise_account: enterprise_account.to_string(),
+            endpoint: endpoint.unwrap_or("https://portal.xmedius.com").to_string(),
+            locale: locale.unwrap_or("en").to_string(),
             sendsecure_url: None,
         }
     }
@@ -188,7 +187,6 @@ impl UploadFileWithStream for JsonClient {
                                            Value::Ext(String::from_utf8_lossy(&boundary)
                                                .into_owned()))])));
         headers.set(ContentLength(msize as u64));
-        //let string = String::from_utf8_lossy(&output);
         let result = make_request(method::Method::Post,
                                   upload_url.as_str(),
                                   Some(&output[..]),
