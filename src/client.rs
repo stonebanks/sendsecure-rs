@@ -49,12 +49,11 @@ impl Client {
                                 Some(test.as_str().as_bytes()),
                                 None)?;
         let json_body = Json::from_str(body.as_str())?;
-        if let Some(obj) = json_body.as_object() {
-            if let Some(origin) = obj.get("token") {
-                return Ok(origin.as_string().unwrap_or_default().to_string());
-            }
-        }
-        Err(SendSecureError::UnexpectedResponseError(body))
+        json_body.as_object()
+            .and_then(|obj| obj.get("token"))
+            .and_then(|u| u.as_string())
+            .map(|u| u.to_string())
+            .ok_or(SendSecureError::UnexpectedResponseError(body))
     }
 
     pub fn new(api_token: &str,
