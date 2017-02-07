@@ -25,10 +25,12 @@ impl Client {
                           device_id: &str,
                           device_name: &str,
                           application_type: &str,
-                          endpoint: &str,
-                          one_time_password: bool)
+                          endpoint: Option<&str>,
+                          one_time_password: Option<bool>)
                           -> SendSecureResult<String> {
-        let formatted_url = format!("{0}/services/{1}/portal/host", endpoint, enterprise_account);
+        let formatted_url = format!("{0}/services/{1}/portal/host",
+                                    endpoint.unwrap_or("https://portal.xmedius.com"),
+                                    enterprise_account);
         let mut url = make_request(method::Method::Get, formatted_url.as_str(), None, None)?;
         url = format!("{0}api/user_token", url);
         let mut params = HashMap::new();
@@ -38,7 +40,7 @@ impl Client {
         params.insert("application_type", application_type);
         params.insert("device_id", device_id);
         params.insert("device_name", device_name);
-        if one_time_password {
+        if one_time_password.unwrap_or(false) {
             params.insert("otp", "true");
         }
         let test = json::encode(&params)?;
