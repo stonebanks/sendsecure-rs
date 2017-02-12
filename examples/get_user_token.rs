@@ -9,7 +9,7 @@ fn main() {
                                                     "d@Rk$1De",
                                                     "DV-TIE/x1",
                                                     "TIE Advanced x1",
-                                                    "The Force App",
+                                                    Some("The Force App"),
                                                     None,
                                                     None)
         .unwrap();

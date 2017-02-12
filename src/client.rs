@@ -10,23 +10,43 @@ use helpers::{safebox, securityprofile, enterprisesettings, safeboxresponse, att
 use json_objects::{response, request};
 use url::Url;
 
+/// `Client` object used to make call to create a SendSecure
 pub struct Client {
     jsonclient: JsonClient,
+    /// The API Token to be used for authentication with the SendSecure service
     pub api_token: String,
+    /// The SendSecure enterprise account
     pub enterprise_account: String,
+    /// The URL to the SendSecure service ("https://portal.xmedius.com", by default)
     pub endpoint: String,
+    /// The locale in which the server errors will be returned ("en", by default)
     pub locale: String,
 }
 
 impl Client {
+    /// Gets an API Token for a specific user within a SendSecure `enterprise_account`.
+    ///
+    /// If the user account is setup for 2FA, `one_type_password` should have a value.
+    ///
+    /// Returns the API Token or a `SendSecureError`
+    ///
+    /// # Arguments
+    ///
+    /// * `enterprise_account` - The SendSecure enterprise account
+    /// * `username` - username of a SendSecure user of the current enterprise account
+    /// * `password` - user's password
+    /// * `device_id` - The unique ID of the device used to get the Token
+    /// * `device_name` - The name of the device used to get the Token
+    /// * `application_type` - the type/name of the application used to get the Token ("SendSecure Rust", if `None`)
+    /// * `endpoint` URL of the SendSecure service ('https://portal.xmedius.com', if `None`)
     pub fn get_user_token(enterprise_account: &str,
                           username: &str,
                           password: &str,
                           device_id: &str,
                           device_name: &str,
-                          application_type: &str,
+                          application_type: Option<&str>,
                           endpoint: Option<&str>,
-                          one_time_password: Option<bool>)
+                          one_time_password: Option<&str>)
                           -> SendSecureResult<String> {
         let formatted_url = format!("{0}/services/{1}/portal/host",
                                     endpoint.unwrap_or("https://portal.xmedius.com"),
@@ -37,11 +57,12 @@ impl Client {
         params.insert("permalink", enterprise_account);
         params.insert("username", username);
         params.insert("password", password);
-        params.insert("application_type", application_type);
+        params.insert("application_type",
+                      application_type.unwrap_or("SendSecure Rust"));
         params.insert("device_id", device_id);
         params.insert("device_name", device_name);
-        if one_time_password.unwrap_or(false) {
-            params.insert("otp", "true");
+        if one_time_password.is_some() {
+            params.insert("otp", one_time_password.unwrap());
         }
         let test = json::encode(&params)?;
         let body = make_request(method::Method::Post,
@@ -56,6 +77,7 @@ impl Client {
             .ok_or(SendSecureError::UnexpectedResponseError(body))
     }
 
+    /// Create a new client.
     pub fn new(api_token: &str,
                enterprise_account: &str,
                endpoint: Option<&str>,
@@ -92,6 +114,22 @@ impl Client {
         return self.commit_safebox(safebox_output);
     }
 
+    /// Pre-creates a [`Safebox`](../helpers/safebox/struct.Safebox.html) on the SendSecure system and initializes the [`Safebox`](../helpers/safebox/struct.Safebox.html) object accordingly.
+    ///
+    /// # Arguments
+    /// * `safebox` - A [`Safebox`](../helpers/safebox/struct.Safebox.html) object to be initialized by the SendSecure system
+    ///
+    /// # Returns
+    ///
+    /// The updated [`Safebox`](../helpers/safebox/struct.Safebox.html) object with the necessary system parameters
+    /// (GUID, public encryption key, upload URL) or a [`SendSecureError`](../error/enum.SendSecureError.html)
+
+    /// # Examples
+    ///
+    /// ```
+    /// let mut safebox = helpers::safebox::Safebox::new(user_email);
+    /// client.initialize_safebox(safebox);
+    /// ```
     pub fn initialize_safebox<'a, 'b>(&'a mut self,
                                       safebox: &'a mut safebox::Safebox<'b>)
                                       -> SendSecureResult<safebox::Safebox<'b>> {
@@ -104,6 +142,15 @@ impl Client {
         Ok(safebox.clone())
     }
 
+    /// Uploads the specified file as an [`Attachment`](../helpers/attachment/struct.Attachment.html)
+    /// of the specified [`Safebox`](../helpers/safebox/struct.Safebox.html)
+    ///
+    /// # Arguments
+    /// * `safebox` - A initialized [`Safebox`](../helpers/safebox/struct.Safebox.html) object
+    /// * `attachment` - An [`Attachment`](../helpers/attachment/struct.Attachment.html)  object - the file to upload to the SendSecure system
+    ///
+    /// # Returns
+    /// The updated [`Attachment`](../helpers/attachment/struct.Attachment.html) object with the GUID parameter filled out or a [`SendSecureError`](../error/enum.SendSecureError.html)
     pub fn upload_attachement<'a, 'b>(&'a mut self,
                                       upload_url: &str,
                                       attachment: &mut attachment::Attachment<'b>)
@@ -118,6 +165,15 @@ impl Client {
         Ok(attachment_output.clone())
     }
 
+    /// Finalizes the creation (commit) of the SafeBox on the SendSecure system. This actually "Sends" the SafeBox with
+    /// all content and contact info previously specified.
+    ///
+    /// # Arguments
+    /// * `safebox` - A [`Safebox`](../helpers/safebox/struct.Safebox.html) object already initialized, with security profile, recipient(s),
+    /// subject and message already defined, and attachments already uploaded.
+    ///
+    /// # Returns
+    ///
     pub fn commit_safebox(&mut self,
                           safebox: safebox::Safebox)
                           -> SendSecureResult<safeboxresponse::SafeboxResponse> {
