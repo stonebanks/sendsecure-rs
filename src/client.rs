@@ -3,6 +3,7 @@ use std::option::Option;
 use std::collections::HashMap;
 use hyper::method;
 use error::{SendSecureError, SendSecureResult};
+
 use utils::requester::make_request;
 use rustc_serialize::json;
 use jsonclient::{JsonClient, UploadFileWithPath};
@@ -28,7 +29,7 @@ impl Client {
     ///
     /// If the user account is setup for 2FA, `one_type_password` should have a value.
     ///
-    /// Returns the API Token or a `SendSecureError`
+    /// Returns the API Token or a [`SendSecureError`](../error/enum.SendSecureError.html)
     ///
     /// # Arguments
     ///
@@ -173,7 +174,7 @@ impl Client {
     /// subject and message already defined, and attachments already uploaded.
     ///
     /// # Returns
-    ///
+    /// [`SafeboxResponse`](../helpers/safeboxresponse/struct.SafeboxResponse.html) or a [`SendSecureError`](../error/enum.SendSecureError.html)
     pub fn commit_safebox(&mut self,
                           safebox: safebox::Safebox)
                           -> SendSecureResult<safeboxresponse::SafeboxResponse> {
@@ -185,6 +186,14 @@ impl Client {
         Ok(response)
     }
 
+    /// Retrieves all available security profiles of the enterprise account for a specific user.
+    ///
+    ///
+    /// # Arguments
+    /// * `user_email` - The email address of a SendSecure user of the current enterprise account
+    ///
+    /// # Returns
+    /// The list of all [`SecurityProfile`](../helpers/securityprofile/struct.SecurityProfile.html)s of the enterprise account, with all their setting values/properties or a [`SendSecureError`](../error/enum.SendSecureError.html)
     pub fn security_profiles(&mut self,
                              user_email: &str)
                              -> SendSecureResult<Vec<securityprofile::SecurityProfile>> {
@@ -194,6 +203,11 @@ impl Client {
         Ok(response.security_profiles)
     }
 
+    /// Retrieves all the current enterprise account's settings specific to SendSecure Account.
+    ///
+    /// # Returns
+    /// The list of all [`SecurityProfile`](../helpers/securityprofile/struct.SecurityProfile.html)s of
+    /// the enterprise account, with all their setting values/properties or a [`SendSecureError`](../error/enum.SendSecureError.html)
     pub fn enterprise_settings(&mut self)
                                -> SendSecureResult<enterprisesettings::EnterpriseSettings> {
         let string = self.jsonclient.enterprise_settings()?;
@@ -201,6 +215,19 @@ impl Client {
         Ok(response)
     }
 
+    /// Retrieves the default [`SecurityProfile`](../helpers/securityprofile/struct.SecurityProfile.html) of the enterprise
+    /// account for a specific user. A default [`SecurityProfile`](../helpers/securityprofile/struct.SecurityProfile.html)
+    /// must have been set in the enterprise account, otherwise the method will return `None`.
+    ///
+    /// # Arguments
+    /// * `user_email` - The email address of a SendSecure user of the current enterprise account
+    ///
+    /// # Returns
+    /// `Some(SecurityProfile)` of  the Default security profile of the enterprise, with all its setting values/properties
+    ///
+    /// `None`, if no default has been set
+    ///
+    /// or a [`SendSecureError`](../error/enum.SendSecureError.html)
     pub fn default_security_profile
         (&mut self,
          user_email: &str)
